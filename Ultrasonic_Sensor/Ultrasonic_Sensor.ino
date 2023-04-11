@@ -16,7 +16,10 @@ void loop() {
   
   calculateDistance();
 
-  while(distance <= 30){
+  if(distance <= 10){
+    Serial.println("Play/Pause");
+  }
+  while(distance <= 10){
     tone(buzzerPin, 1400, buzzerDuration);
     calculateDistance();
   }
@@ -28,7 +31,7 @@ void loop() {
 }
 
 void calculateDistance(){
-  if(millis() > 30000) exit(0);
+  if(millis() > 300000) exit(0);
   digitalWrite(trigPin, LOW); //setting the trigger pin to low to avoid any sonic cycles 
   delayMicroseconds(2);  
   digitalWrite(trigPin, HIGH);  //setting it to high with a 10us delay sends out an 8 cycle sonic burst
