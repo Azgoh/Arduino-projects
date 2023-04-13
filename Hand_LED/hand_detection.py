@@ -1,11 +1,12 @@
 import cv2
 import time
+import math
 import serial
 import mediapipe as mp
 from threading import Thread
 
 port_name = "/dev/ttyACM0"
-common_baudrate = 9600
+common_baudrate = 115200
 cap = cv2.VideoCapture(0)
 mpHands = mp.solutions.hands
 hands = mpHands.Hands()
@@ -26,23 +27,20 @@ def captureVideo(arduino_serial):
         _, frame = cap.read()
         imageRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) 
         results = hands.process(imageRGB)
-        handCount = 0
         if results.multi_hand_landmarks:
-            for handLms in results.multi_hand_landmarks: # working with each hand
-                handCount += 1   
-                for id, lm in enumerate(handLms.landmark):
-                    h, w, c = frame.shape
-                    cx, cy = int(lm.x * w), int(lm.y * h)
-                    if id == 20:
-                        cv2.circle(frame, (cx, cy), 25, (255, 0, 255), cv2.FILLED)
-                mpDraw.draw_landmarks(frame, handLms, mpHands.HAND_CONNECTIONS)
-            input = bytes(str(handCount), "UTF-8")
-            arduino_serial.write(input)
+            thumb_point, index_point = 0, 0 
+            for id, lm in enumerate(results.multi_hand_landmarks[0].landmark):
+                if id == 4: 
+                    thumb_point = (lm.x, lm.y)
+                elif id == 8: 
+                    index_point = (lm.x, lm.y)
+            distance = math.sqrt((index_point[0] - thumb_point[0])**2 + (index_point[1] - thumb_point[1])**2)
+            mpDraw.draw_landmarks(frame, results.multi_hand_landmarks[0], mpHands.HAND_CONNECTIONS)
+            input = '%.0f'%(distance * 100)
+            print(input)
+            arduino_serial.write(input.encode())
             time.sleep(0.1)
-            print(arduino_serial.readline())
-        else: 
-            arduino_serial.write(bytes(str(handCount), "UTF-8")) 
-            time.sleep(0.1) 
+            print(arduino_serial.readline()) 
 
         cv2.imshow("Video", frame)
         if(cv2.waitKey(1) & 0xFF == ord('q')):

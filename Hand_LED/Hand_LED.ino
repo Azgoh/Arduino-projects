@@ -1,8 +1,7 @@
 const int LED_PIN = 5;
-int input = 1;
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.setTimeout(1);
   pinMode(LED_PIN, INPUT);
   digitalWrite(LED_PIN, LOW);
@@ -11,8 +10,11 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly
   if(Serial.available()){
-    input = Serial.readString().toInt();
-    Serial.println(input);
-    analogWrite(LED_PIN, input*100);
+    int distance = Serial.readStringUntil('\n').toInt();
+    int brightness = distance * 5;
+    if(brightness > 255) brightness = 255;
+    else if(distance < 5) brightness = 0;
+    Serial.println(brightness);
+    analogWrite(LED_PIN, brightness);
   }
 }
