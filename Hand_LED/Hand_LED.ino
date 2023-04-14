@@ -10,10 +10,7 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly
   if(Serial.available()){
-    int distance = Serial.readStringUntil('\n').toInt();
-    int brightness = distance * 5;
-    if(brightness > 255) brightness = 255;
-    else if(distance < 5) brightness = 0;
+    int brightness = Serial.readStringUntil('\n').toInt();
     Serial.println(brightness);
     analogWrite(LED_PIN, brightness);
   }
